@@ -1,0 +1,84 @@
+name: Bump hydra2 on new nzbhydra2 release
+
+on:
+  schedule:
+    # daily at 06:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  check-and-bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check linuxserver/nzbhydra2 for a new release tag
+        id: check
+        run: |
+          set -euo pipefail
+
+          latest_tag=$(curl -s "https://hub.docker.com/v2/repositories/linuxserver/nzbhydra2/tags?page_size=100" \
+            | jq -r '.results[].name' \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+-ls[0-9]+$' \
+            | head -n1)
+
+          if [ -z "$latest_tag" ]; then
+            echo "Could not determine latest upstream tag, skipping." >&2
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          current_tag=$(jq -r '.last_seen_upstream_tag' hydra2/build.json)
+
+          echo "current upstream tag: $current_tag"
+          echo "latest upstream tag:  $latest_tag"
+
+          if [ "$latest_tag" = "$current_tag" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "latest_tag=$latest_tag" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bump add-on version and changelog
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+
+          latest_tag="${{ steps.check.outputs.latest_tag }}"
+          app_version=$(echo "$latest_tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+)-ls[0-9]+$/\1/')
+
+          jq --arg t "$latest_tag" '.last_seen_upstream_tag = $t' hydra2/build.json > /tmp/build.json
+          mv /tmp/build.json hydra2/build.json
+
+          current_version=$(jq -r '.version' hydra2/config.json)
+          new_version=$(python3 -c "p='$current_version'.split('.'); p[-1]=str(int(p[-1])+1); print('.'.join(p))")
+
+          jq --arg v "$new_version" '.version = $v' hydra2/config.json > /tmp/config.json
+          mv /tmp/config.json hydra2/config.json
+
+          {
+            echo "## $new_version"
+            echo
+            echo " - Update hydra2 to $app_version (linuxserver/nzbhydra2:$latest_tag)"
+            echo
+            cat hydra2/CHANGELOG.md
+          } > /tmp/CHANGELOG.md
+          mv /tmp/CHANGELOG.md hydra2/CHANGELOG.md
+
+          echo "new_version=$new_version" >> "$GITHUB_ENV"
+          echo "app_version=$app_version" >> "$GITHUB_ENV"
+          echo "latest_tag=$latest_tag" >> "$GITHUB_ENV"
+
+      - name: Commit and push
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add hydra2/build.json hydra2/config.json hydra2/CHANGELOG.md
+          git commit -m "hydra2: bump to ${new_version} (nzbhydra2 ${app_version}, ${latest_tag})"
+          git push

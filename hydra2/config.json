@@ -1,0 +1,45 @@
+{
+  "name": "hydra2",
+  "version": "1.0.0",
+  "slug": "hydra2",
+  "legacy": false,
+  "init": false,
+  "maintenance": {
+    "github_release": "https://github.com/linuxserver/docker-nzbhydra2",
+    "version_regex": "v(\\d+\\.\\d+\\.\\d+)-(ls\\d+)"
+  },
+  "description": "Meta search application for NZB indexers",
+  "url": "https://github.com/Cuban100/home-assistant-addons/tree/main/hydra2#readme",
+  "startup": "services",
+  "arch": [
+    "aarch64",
+    "amd64"
+  ],
+  "ports": {
+    "5076/tcp": 5076
+  },
+  "ports_description": {
+    "5076/tcp": "web interface"
+  },
+  "map": [
+    "config:rw",
+    "share:rw",
+    "media:rw",
+    "ssl"
+  ],
+  "webui": "http://[HOST]:[PORT:5076]",
+  "boot": "auto",
+  "options": {
+    "PUID": 1001,
+    "PGID": 1001
+  },
+  "schema": {
+    "PUID": "int",
+    "PGID": "int",
+    "TZ": "str?"
+  },
+  "backup_exclude": [
+    "**/backup/*",
+    "**/logs/*"
+  ]
+}
