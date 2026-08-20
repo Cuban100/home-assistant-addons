@@ -1,3 +1,7 @@
+## 1.0.1
+
+ - Update hydra2 to 8.9.0 (linuxserver/nzbhydra2:v8.9.0-ls101)
+
 ## 1.0.0
 
  - Forked from petersendev/hassio-addons into Cuban100/home-assistant-addons
