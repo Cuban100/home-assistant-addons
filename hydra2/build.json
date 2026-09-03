@@ -1,6 +1,6 @@
 {
   "_comment": "build_from tags float on 'latest' so every rebuild pulls the newest linuxserver/nzbhydra2 image. last_seen_upstream_tag is only a marker the update-check workflow uses to detect a new release and bump config.json's version so Home Assistant shows 'Update available'.",
-  "last_seen_upstream_tag": "v8.9.0-ls102",
+  "last_seen_upstream_tag": "v8.9.0-ls103",
   "build_from": {
     "aarch64": "linuxserver/nzbhydra2:arm64v8-latest",
     "amd64": "linuxserver/nzbhydra2:amd64-latest"
