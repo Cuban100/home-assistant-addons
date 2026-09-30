@@ -1,3 +1,7 @@
+## 1.0.12
+
+ - Update hydra2 to 9.1.0 (linuxserver/nzbhydra2:v9.1.0-ls108)
+
 ## 1.0.11
 
  - Update hydra2 to 9.0.6 (linuxserver/nzbhydra2:v9.0.6-ls108)
